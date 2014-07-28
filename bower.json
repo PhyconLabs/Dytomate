@@ -1,0 +1,25 @@
+{
+  "name": "dytomate",
+  "version": "0.0.0",
+  "homepage": "http://ratvars.com",
+  "authors": [
+    "Rolands Atvars <rolands.atvars@gmail.com>"
+  ],
+  "description": "JSCMS ( more to come )",
+  "main": "src/main.js",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "src/bower",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "scribe": "~0.1.17",
+    "requirejs": "~2.1.14",
+    "scribe-plugin-toolbar": "~0.1.4"
+  }
+}
