@@ -30,7 +30,12 @@ define([ "Editor", "ImageChanger" ], function(Editor, ImageChanger) {
 	
 	Dytomate.prototype.disable = function() {
 		if (this.enabled) {
-			// TODO: implement
+			if (this.editor) {
+				this.closeTextElementEdit();
+			}
+			
+			this.detachContainerListeners();
+			this.deinitContainer();
 			
 			this.enabled = false;
 		}
@@ -135,7 +140,9 @@ define([ "Editor", "ImageChanger" ], function(Editor, ImageChanger) {
 	};
 	
 	Dytomate.prototype.detachContainerListeners = function() {
-		// TODO: implement
+		this.container.removeEventListener("click", this.listeners.containerClick);
+		
+		return this;
 	};
 	
 	Dytomate.prototype.handleDoubleClick = function(element) {
