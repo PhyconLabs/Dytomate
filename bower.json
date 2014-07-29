@@ -20,6 +20,7 @@
   "dependencies": {
     "scribe": "~0.1.17",
     "requirejs": "~2.1.14",
-    "scribe-plugin-toolbar": "~0.1.4"
+    "scribe-plugin-toolbar": "~0.1.4",
+    "scribe-plugin-link-prompt-command": "~0.1.2"
   }
 }
