@@ -1,3 +1,4 @@
 .DS_Store
 zerotype
 src/bower
+node_modules

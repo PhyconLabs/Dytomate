@@ -1,0 +1,15 @@
+{
+	"baseUrl": "src",
+	
+	"paths": {
+		"scribe": "bower/scribe/scribe",
+		"scribe-plugin-toolbar": "bower/scribe-plugin-toolbar/scribe-plugin-toolbar",
+		"scribe-plugin-link-prompt-command": "bower/scribe-plugin-link-prompt-command/scribe-plugin-link-prompt-command"
+	},
+	
+	"name": "bower/almond/almond",
+	
+	"include": [ "main" ],
+	
+	"wrap": true
+}

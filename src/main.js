@@ -3,7 +3,7 @@ requirejs([ "Dytomate" ], function(Dytomate) {
 		window.dytomate = new Dytomate(); // FIXME: don't globalise
 	}
 	
-	if (document.readyState === "complete") {
+	if ([ "complete", "loaded", "interactive" ].indexOf(document.readyState) !== -1) {
 		initDytomate();
 	}
 	else {
