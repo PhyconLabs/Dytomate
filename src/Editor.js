@@ -283,7 +283,7 @@ define(
 			this.scribe.use(scribeToolbar);
 			this.scribe.use(scribePluginLinkPromptCommand());
 			
-			this.element.focus();
+			this.focus();
 			
 			return this;
 		};
@@ -293,6 +293,39 @@ define(
 			
 			this.element.removeAttribute("contenteditable");
 			this.element.parentNode.innerHTML = this.element.parentNode.innerHTML;
+			
+			return this;
+		};
+		
+		Editor.prototype.focus = function() {
+			var getFirstDeepestChild = function(node) {
+				var walker = document.createTreeWalker(node);
+				var previousNode = walker.currentNode;
+				
+				if (walker.firstChild()) {
+					if (walker.currentNode.nodeName.toLowerCase() === "br") {
+						return previousNode;
+					}
+					else {
+						return getFirstDeepestChild(walker.currentNode);
+					}
+				}
+				else {
+					return walker.currentNode;
+				}
+			};
+			
+			this.element.focus();
+			
+			var selection = new this.scribe.api.Selection();
+			var firstDeepestChild = getFirstDeepestChild(this.scribe.el.firstChild);
+			var range = selection.range;
+			
+			range.setStart(firstDeepestChild, 0);
+			range.setEnd(firstDeepestChild, 0);
+			
+			selection.selection.removeAllRanges();
+			selection.selection.addRange(range);
 			
 			return this;
 		};

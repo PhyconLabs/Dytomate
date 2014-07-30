@@ -5196,7 +5196,7 @@ define(
 				this.overlay[part] = document.createElement("div");
 				
 				this.overlay[part].style.position = "fixed";
-				this.overlay[part].style.backgroundColor = "rgba(255, 255, 255, .75)";
+				this.overlay[part].style.backgroundColor = this.dytomite.options.editorOverlayColor;
 			}, this);
 			
 			[ "boldButton", "italicButton", "linkButton" ].forEach(function(part, index) {
@@ -5204,26 +5204,58 @@ define(
 				
 				this.toolbar[part].style.position = "absolute";
 				this.toolbar[part].style.top = "0";
-				this.toolbar[part].style.left = (40 * index).toString() + "px";
-				this.toolbar[part].style.width = "32px";
-				this.toolbar[part].style.height = "32px";
+				this.toolbar[part].style.left = this.toPx(
+					(
+						this.dytomite.options.editorToolbarButtonSize +
+						this.dytomite.options.editorToolbarButtonSpacing
+					) *
+					index
+				);
+				this.toolbar[part].style.width = this.toPx(this.dytomite.options.editorToolbarButtonSize);
+				this.toolbar[part].style.height = this.toPx(this.dytomite.options.editorToolbarButtonSize);
 				this.toolbar[part].style.padding = "0";
 				this.toolbar[part].style.margin = "0";
-				this.toolbar[part].style.border = "1px solid #666";
-				this.toolbar[part].style.boxShadow = "0 0 10px #333";
+				this.toolbar[part].style.border = this.toPx(this.dytomite.options.editorToolbarButtonBorderWidth) +
+					" solid " +
+					this.dytomite.options.editorToolbarButtonBorderColor;
+				this.toolbar[part].style.boxShadow = "0 0 " +
+					this.toPx(this.dytomite.options.editorToolbarButtonShadowSize) +
+					" " +
+					this.dytomite.options.editorToolbarButtonShadowColor;
 				this.toolbar[part].style.cursor = "pointer";
 				this.toolbar[part].style.backgroundSize = "contain";
-				this.toolbar[part].style.backgroundColor = "#fff";
+				this.toolbar[part].style.backgroundColor = this.dytomite.options.editorToolbarButtonColor;
 				
 				this.toolbar[part].classList.add("dytomate-editor-command-button");
+				
+				this.toolbar[part].addEventListener("mouseover", function() {
+					this.toolbar[part].style.backgroundColor = this.dytomite.options.editorToolbarButtonHoverColor;
+					this.toolbar[part].style.boxShadow = "0 0 " +
+						this.toPx(this.dytomite.options.editorToolbarButtonShadowHoverSize) +
+						" " +
+						this.dytomite.options.editorToolbarButtonShadowColor;
+				}.bind(this));
+				
+				this.toolbar[part].addEventListener("mouseout", function() {
+					this.toolbar[part].style.backgroundColor = this.dytomite.options.editorToolbarButtonColor;
+					this.toolbar[part].style.boxShadow = "0 0 " +
+						this.toPx(this.dytomite.options.editorToolbarButtonShadowSize) +
+						" " +
+						this.dytomite.options.editorToolbarButtonShadowColor;
+				}.bind(this));
 			}, this);
 			
 			this.overlay.window.style.position = "fixed";
 			this.overlay.window.style.boxSizing = "content-box";
-			this.overlay.window.style.padding = "16px";
-			this.overlay.window.style.border = "1px solid #666";
+			this.overlay.window.style.padding = this.toPx(this.dytomite.options.editorPadding);
+			this.overlay.window.style.border = this.toPx(this.dytomite.options.editorBorderWidth) +
+				" solid " +
+				this.dytomite.options.editorBorderColor;
 			this.overlay.window.style.pointerEvents = "none";
-			this.overlay.window.style.boxShadow = "0 0 20px #333";
+			this.overlay.window.style.boxShadow = "0 0 " +
+				this.toPx(this.dytomite.options.editorShadowSize) +
+				" " +
+				this.dytomite.options.editorShadowColor;
 			
 			this.overlay.top.style.top = "0";
 			this.overlay.top.style.left = "0";
@@ -5284,28 +5316,73 @@ define(
 		
 		Editor.prototype.positionOverlay = function() {
 			var position = this.element.getBoundingClientRect();
+			var viewportHeight = window.innerHeight;
 			var elementWidth = this.element.offsetWidth;
 			var elementHeight = this.element.offsetHeight;
+			var padding = this.dytomite.options.editorPadding;
+			var border = this.dytomite.options.editorBorderWidth;
+			var toolbarOffsetX = this.dytomite.options.editorToolbarOffsetX;
+			var toolbarOffsetY = this.dytomite.options.editorToolbarOffsetY;
+			var toolbarButtonSize = this.dytomite.options.editorToolbarButtonSize;
 			
-			this.overlay.window.style.top = (position.top - 16).toString() + "px";
-			this.overlay.window.style.left = (position.left - 16).toString() + "px";
-			this.overlay.window.style.width = elementWidth.toString() + "px";
-			this.overlay.window.style.height = elementHeight.toString() + "px";
+			var toolbarSpaceY = toolbarOffsetY > 0 ? 0 : Math.abs(toolbarOffsetY);
 			
-			this.overlay.top.style.height = (position.top - 16).toString() + "px";
+			var overlayWindowTop = position.top - padding;
+			var overlayWindowLeft = position.left - padding;
+			var overlayWindowWidth = elementWidth;
+			var overlayWindowHeight = elementHeight + toolbarSpaceY;
 			
-			this.overlay.left.style.top = (position.top - 16).toString() + "px";
-			this.overlay.left.style.width = (position.left - 16).toString() + "px";
-			this.overlay.left.style.height = (elementHeight + 34).toString() + "px";
+			var overlayTopHeight = overlayWindowTop;
 			
-			this.overlay.right.style.top = (position.top - 16).toString() + "px";
-			this.overlay.right.style.left = (position.left + elementWidth + 18).toString() + "px";
-			this.overlay.right.style.height = (elementHeight + 34).toString() + "px";
+			var overlayLeftTop = overlayWindowTop;
+			var overlayLeftWidth = overlayWindowLeft;
+			var overlayLeftHeight = elementHeight + toolbarSpaceY + (padding * 2) + (border * 2);
 			
-			this.overlay.bottom.style.top = (position.top + elementHeight + 18).toString() + "px";
+			var overlayRightTop = overlayWindowTop;
+			var overlayRightLeft = position.left + elementWidth + padding + (border * 2);
+			var overlayRightHeight = overlayLeftHeight;
 			
-			this.toolbar.container.style.top = (position.top - 16 - 20 - 4 - 32).toString() + "px";
-			this.toolbar.container.style.left = (position.left - 16).toString() + "px";
+			var overlayBottomTop = position.top + elementHeight + toolbarSpaceY + padding + (border * 2);
+			
+			var toolbarContainerTop = overlayBottomTop + toolbarOffsetY;
+			var toolbarContainerLeft = overlayWindowLeft + toolbarOffsetX;
+			
+			if (toolbarContainerTop + toolbarButtonSize > viewportHeight) {
+				toolbarContainerTop = position.top - padding - border - toolbarButtonSize - toolbarOffsetY - toolbarSpaceY;
+				
+				if (toolbarSpaceY > 0) {
+					overlayWindowTop -= toolbarSpaceY;
+					overlayTopHeight -= toolbarSpaceY;
+					overlayLeftTop -= toolbarSpaceY;
+					overlayRightTop -= toolbarSpaceY;
+					overlayBottomTop -= toolbarSpaceY;
+				}
+			}
+			
+			// var toolbarY = (position.top + elementHeight + padding + (border * 2) + toolbarOffsetY + offsetY);
+			// if ((toolbarY + toolbarButtonSize) > viewportHeight) {
+			// 	toolbarY = position.top - padding - border - toolbarButtonSize - toolbarOffsetY - offsetY;
+			// }
+			
+			this.overlay.window.style.top = this.toPx(overlayWindowTop);
+			this.overlay.window.style.left = this.toPx(overlayWindowLeft);
+			this.overlay.window.style.width = this.toPx(overlayWindowWidth);
+			this.overlay.window.style.height = this.toPx(overlayWindowHeight);
+			
+			this.overlay.top.style.height = this.toPx(overlayTopHeight);
+			
+			this.overlay.left.style.top = this.toPx(overlayLeftTop);
+			this.overlay.left.style.width = this.toPx(overlayLeftWidth);
+			this.overlay.left.style.height = this.toPx(overlayLeftHeight);
+			
+			this.overlay.right.style.top = this.toPx(overlayRightTop);
+			this.overlay.right.style.left = this.toPx(overlayRightLeft);
+			this.overlay.right.style.height = this.toPx(overlayRightHeight);
+			
+			this.overlay.bottom.style.top = this.toPx(overlayBottomTop);
+			
+			this.toolbar.container.style.top = this.toPx(toolbarContainerTop);
+			this.toolbar.container.style.left = this.toPx(toolbarContainerLeft);
 			
 			return this;
 		};
@@ -5330,7 +5407,7 @@ define(
 			this.scribe.use(scribeToolbar);
 			this.scribe.use(scribePluginLinkPromptCommand());
 			
-			this.element.focus();
+			this.focus();
 			
 			return this;
 		};
@@ -5340,6 +5417,39 @@ define(
 			
 			this.element.removeAttribute("contenteditable");
 			this.element.parentNode.innerHTML = this.element.parentNode.innerHTML;
+			
+			return this;
+		};
+		
+		Editor.prototype.focus = function() {
+			var getFirstDeepestChild = function(node) {
+				var walker = document.createTreeWalker(node);
+				var previousNode = walker.currentNode;
+				
+				if (walker.firstChild()) {
+					if (walker.currentNode.nodeName.toLowerCase() === "br") {
+						return previousNode;
+					}
+					else {
+						return getFirstDeepestChild(walker.currentNode);
+					}
+				}
+				else {
+					return walker.currentNode;
+				}
+			};
+			
+			this.element.focus();
+			
+			var selection = new this.scribe.api.Selection();
+			var firstDeepestChild = getFirstDeepestChild(this.scribe.el.firstChild);
+			var range = selection.range;
+			
+			range.setStart(firstDeepestChild, 0);
+			range.setEnd(firstDeepestChild, 0);
+			
+			selection.selection.removeAllRanges();
+			selection.selection.addRange(range);
 			
 			return this;
 		};
@@ -5402,6 +5512,10 @@ define(
 			];
 			
 			return blockSupported.indexOf(this.getElementTagName()) !== -1;
+		};
+		
+		Editor.prototype.toPx = function(number) {
+			return number.toString() + "px";
 		};
 		
 		return Editor;
@@ -5546,7 +5660,24 @@ define('Dytomate',[ "Editor", "ImageChanger" ], function(Editor, ImageChanger) {
 		this.options = this.mergeOptions({
 			container: "body",
 			dataAttribute: "dytomate",
-			doubleClickDelay: 250
+			doubleClickDelay: 250,
+			editorPadding: 8,
+			editorBorderWidth: 1,
+			editorBorderColor: "#666",
+			editorShadowSize: 10,
+			editorShadowColor: "#333",
+			editorOverlayColor: "rgba(255, 255, 255, .75)",
+			editorToolbarOffsetX: 8,
+			editorToolbarOffsetY: -32,
+			editorToolbarButtonSize: 24,
+			editorToolbarButtonSpacing: 4,
+			editorToolbarButtonColor: "#fff",
+			editorToolbarButtonHoverColor: "#BDF7FF",
+			editorToolbarButtonShadowSize: 0,
+			editorToolbarButtonShadowHoverSize: 5,
+			editorToolbarButtonShadowColor: "#004A54",
+			editorToolbarButtonBorderWidth: 1,
+			editorToolbarButtonBorderColor: "#666"
 		}, options);
 		
 		this.listeners = {};
@@ -5734,7 +5865,7 @@ define('Dytomate',[ "Editor", "ImageChanger" ], function(Editor, ImageChanger) {
 });
 requirejs([ "Dytomate" ], function(Dytomate) {
 	function initDytomate() {
-		window.dytomate = new Dytomate(); // FIXME: don't globalise
+		var dytomate = new Dytomate();
 	}
 	
 	if ([ "complete", "loaded", "interactive" ].indexOf(document.readyState) !== -1) {
