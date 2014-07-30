@@ -5,7 +5,24 @@ define([ "Editor", "ImageChanger" ], function(Editor, ImageChanger) {
 		this.options = this.mergeOptions({
 			container: "body",
 			dataAttribute: "dytomate",
-			doubleClickDelay: 250
+			doubleClickDelay: 250,
+			editorPadding: 8,
+			editorBorderWidth: 1,
+			editorBorderColor: "#666",
+			editorShadowSize: 10,
+			editorShadowColor: "#333",
+			editorOverlayColor: "rgba(255, 255, 255, .75)",
+			editorToolbarOffsetX: 8,
+			editorToolbarOffsetY: -32,
+			editorToolbarButtonSize: 24,
+			editorToolbarButtonSpacing: 4,
+			editorToolbarButtonColor: "#fff",
+			editorToolbarButtonHoverColor: "#BDF7FF",
+			editorToolbarButtonShadowSize: 0,
+			editorToolbarButtonShadowHoverSize: 5,
+			editorToolbarButtonShadowColor: "#004A54",
+			editorToolbarButtonBorderWidth: 1,
+			editorToolbarButtonBorderColor: "#666"
 		}, options);
 		
 		this.listeners = {};

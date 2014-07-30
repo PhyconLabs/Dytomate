@@ -1,6 +1,6 @@
 requirejs([ "Dytomate" ], function(Dytomate) {
 	function initDytomate() {
-		window.dytomate = new Dytomate(); // FIXME: don't globalise
+		var dytomate = new Dytomate();
 	}
 	
 	if ([ "complete", "loaded", "interactive" ].indexOf(document.readyState) !== -1) {
