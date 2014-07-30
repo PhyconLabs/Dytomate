@@ -5359,11 +5359,6 @@ define(
 				}
 			}
 			
-			// var toolbarY = (position.top + elementHeight + padding + (border * 2) + toolbarOffsetY + offsetY);
-			// if ((toolbarY + toolbarButtonSize) > viewportHeight) {
-			// 	toolbarY = position.top - padding - border - toolbarButtonSize - toolbarOffsetY - offsetY;
-			// }
-			
 			this.overlay.window.style.top = this.toPx(overlayWindowTop);
 			this.overlay.window.style.left = this.toPx(overlayWindowLeft);
 			this.overlay.window.style.width = this.toPx(overlayWindowWidth);
