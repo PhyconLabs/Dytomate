@@ -1,4 +1,4 @@
-define([ "Editor", "ImageChanger" ], function(Editor, ImageChanger) {
+define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageChanger) {
 	function Dytomate(options) {
 		options = options || {};
 		
@@ -25,10 +25,12 @@ define([ "Editor", "ImageChanger" ], function(Editor, ImageChanger) {
 			editorToolbarButtonBorderColor: "#666"
 		}, options);
 		
+		this.saveQueue = [];
 		this.listeners = {};
 		
 		this.container = null;
 		this.editor = null;
+		this.currentlySaving = false;
 		this.enabled = false;
 		
 		this.enable();
@@ -37,7 +39,7 @@ define([ "Editor", "ImageChanger" ], function(Editor, ImageChanger) {
 	Dytomate.prototype.enable = function() {
 		if (!this.enabled) {
 			this.initContainer();
-			this.attachContainerListeners();
+			this.attachListeners();
 			
 			this.enabled = true;
 		}
@@ -51,7 +53,7 @@ define([ "Editor", "ImageChanger" ], function(Editor, ImageChanger) {
 				this.closeTextElementEdit();
 			}
 			
-			this.detachContainerListeners();
+			this.detachListeners();
 			this.deinitContainer();
 			
 			this.enabled = false;
@@ -130,7 +132,96 @@ define([ "Editor", "ImageChanger" ], function(Editor, ImageChanger) {
 		return this;
 	};
 	
-	Dytomate.prototype.attachContainerListeners = function() {
+	Dytomate.prototype.save = function(key, value, isFile, onDone, fromQueue) {
+		if (!fromQueue && this.saveQueue.length > 0) {
+			this.saveQueue.push({
+				key: key,
+				value: value,
+				isFile: isFile,
+				onDone: onDone
+			});
+		}
+		else {
+			var url = isFile ? "/api/dytomate/upload" : "/api/dytomate/save";
+			
+			var finalize = function() {
+				this.currentlySaving = false;
+				
+				if (this.saveQueue.length > 0) {
+					var nextSave = this.saveQueue.shift();
+					
+					this.save(nextSave.key, nextSave.value, nextSave.isFile, nextSave.onDone, true);
+				}
+				
+				if (onDone) {
+					onDone();
+				}
+			}.bind(this);
+			
+			var onSuccess = function() {
+				finalize();
+			};
+			
+			var onError = function() {
+				alert("Couldn't save `" + key + "`.");
+				
+				finalize();
+			};
+			
+			if (typeof key === "object") {
+				key = this.getElementDytomateAttribute(key);
+			}
+			
+			this.currentlySaving = true;
+			
+			reqwest({
+				url: url,
+				method: "post",
+				data: { key: key, value: value },
+				error: function(error) {
+					onError();
+				},
+				success: function(response) {
+					response = parseInt(response, 10);
+					
+					if (response === 1) {
+						onSuccess();
+					}
+					else {
+						onError();
+					}
+				}
+			});
+		}
+		
+		return this;
+	};
+	
+	Dytomate.prototype.saveText = function(key, value, onDone) {
+		return this.save(key, value, false, onDone, false);
+	};
+	
+	Dytomate.prototype.saveFile = function(key, file, onDone) {
+		var reader = new FileReader();
+		
+		reader.onload = function(event) {
+			var blob = event.target.result.split(",")[1];
+			
+			this.save(key, { name: file.name, blob: blob }, true, onDone, false);
+		}.bind(this);
+		
+		reader.readAsDataURL(file);
+		
+		return this;
+	};
+	
+	Dytomate.prototype.attachListeners = function() {
+		window.onbeforeunload = function(event) {
+			if (this.saveQueue.length > 0 || this.currentlySaving) {
+				return "Changes are still being saved. Are you sure you want to navigate away ( changes will be lost )?";
+			}
+		}.bind(this);
+		
 		this.container.addEventListener("click", this.listeners.containerClick = function(event) {
 			if (event.detail !== "dytomate") {
 				var element = event.target;
@@ -156,7 +247,9 @@ define([ "Editor", "ImageChanger" ], function(Editor, ImageChanger) {
 		return this;
 	};
 	
-	Dytomate.prototype.detachContainerListeners = function() {
+	Dytomate.prototype.detachListeners = function() {
+		delete window.onbeforeunload;
+		
 		this.container.removeEventListener("click", this.listeners.containerClick);
 		
 		return this;

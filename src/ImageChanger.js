@@ -43,9 +43,9 @@ define([], function() {
 	};
 	
 	ImageChanger.prototype.preview = function(doneCallback) {
-		var doneCallbackCaller = function() {
+		var doneCallbackCaller = function(file) {
 			if (doneCallback) {
-				doneCallback.call(this);
+				doneCallback.call(this, file);
 			}
 		}.bind(this);
 		
@@ -58,7 +58,7 @@ define([], function() {
 				image.onload = function() {
 					this.element.src = e.target.result;
 					
-					doneCallbackCaller();
+					doneCallbackCaller(this.input.files[0]);
 				}.bind(this);
 				
 				image.onerror = function() {
@@ -74,6 +74,12 @@ define([], function() {
 		return this;
 	};
 	
+	ImageChanger.prototype.save = function(file, onDone) {
+		this.dytomate.saveFile(this.element, file, onDone);
+		
+		return this;
+	};
+	
 	ImageChanger.prototype.initFileInput = function() {
 		this.input = document.createElement("input");
 		
@@ -81,8 +87,15 @@ define([], function() {
 		this.input.style.display = "none";
 		
 		this.attachFileInputListener(function() {
-			this.preview(function() {
-				this.disable();
+			this.preview(function(file) {
+				if (file) {
+					this.save(file, function() {
+						this.disable();
+					}.bind(this));
+				}
+				else {
+					this.disable();
+				}
 			});
 		});
 		

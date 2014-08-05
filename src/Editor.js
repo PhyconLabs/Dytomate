@@ -37,6 +37,8 @@ define(
 		
 		Editor.prototype.disable = function() {
 			if (this.enabled) {
+				this.save();
+				
 				this.detachListeners();
 				this.deinitOverlay();
 				this.deinitElement();
@@ -321,6 +323,12 @@ define(
 			
 			selection.selection.removeAllRanges();
 			selection.selection.addRange(range);
+			
+			return this;
+		};
+		
+		Editor.prototype.save = function(onDone) {
+			this.dytomite.saveText(this.element, this.scribe.getHTML(), onDone);
 			
 			return this;
 		};
