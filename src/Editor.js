@@ -24,7 +24,7 @@ define(
 				this.body = document.querySelector("body");
 				
 				this.initElement();
-				this.removeNewlines();
+				this.removeExtraWhitespace();
 				this.initOverlay();
 				this.initScribe();
 				this.attachListeners();
@@ -260,12 +260,20 @@ define(
 			return this;
 		};
 		
-		Editor.prototype.removeNewlines = function() {
+		Editor.prototype.removeExtraWhitespace = function() {
 			var html = this.element.innerHTML;
-			
 			html = html.replace(/\r?\n|\r|\t/g, "");
-			
 			this.element.innerHTML = html;
+			
+			var whitespaceRemover = function(node) {
+				for (var i = 0; i < node.childNodes.length; i++) {
+					if (node.childNodes[i].nodeType === 3 && !/\S/.test(node.childNodes[i].nodeValue)) {
+						node.removeChild(node.childNodes[i]);
+					}
+				}
+			};
+			
+			whitespaceRemover(this.element);
 			
 			return this;
 		};

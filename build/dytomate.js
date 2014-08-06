@@ -5755,7 +5755,7 @@ define(
 				this.body = document.querySelector("body");
 				
 				this.initElement();
-				this.removeNewlines();
+				this.removeExtraWhitespace();
 				this.initOverlay();
 				this.initScribe();
 				this.attachListeners();
@@ -5991,12 +5991,20 @@ define(
 			return this;
 		};
 		
-		Editor.prototype.removeNewlines = function() {
+		Editor.prototype.removeExtraWhitespace = function() {
 			var html = this.element.innerHTML;
-			
 			html = html.replace(/\r?\n|\r|\t/g, "");
-			
 			this.element.innerHTML = html;
+			
+			var whitespaceRemover = function(node) {
+				for (var i = 0; i < node.childNodes.length; i++) {
+					if (node.childNodes[i].nodeType === 3 && !/\S/.test(node.childNodes[i].nodeValue)) {
+						node.removeChild(node.childNodes[i]);
+					}
+				}
+			};
+			
+			whitespaceRemover(this.element);
 			
 			return this;
 		};
@@ -6290,8 +6298,8 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 			editorShadowSize: 10,
 			editorShadowColor: "#333",
 			editorOverlayColor: "rgba(255, 255, 255, .75)",
-			editorToolbarOffsetX: 8,
-			editorToolbarOffsetY: -32,
+			editorToolbarOffsetX: 0,
+			editorToolbarOffsetY: 8,
 			editorToolbarButtonSize: 24,
 			editorToolbarButtonSpacing: 4,
 			editorToolbarButtonColor: "#fff",
