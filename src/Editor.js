@@ -53,13 +53,13 @@ define(
 		Editor.prototype.initElement = function() {
 			this.element.style.outline = "none";
 			
-			this.element.setAttribute("data-dytomate-in-edit", "true");
+			this.dytomite.setElementDytomateAttribute(this.element, "in-edit", "true");
 			
 			return this;
 		};
 		
 		Editor.prototype.deinitElement = function() {
-			this.element.removeAttribute("data-dytomate-in-edit");
+			this.dytomite.removeElementDytomateAttribute(this.element, "in-edit");
 			
 			return this;
 		};

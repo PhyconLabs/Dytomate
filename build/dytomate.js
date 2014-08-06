@@ -5784,13 +5784,13 @@ define(
 		Editor.prototype.initElement = function() {
 			this.element.style.outline = "none";
 			
-			this.element.setAttribute("data-dytomate-in-edit", "true");
+			this.dytomite.setElementDytomateAttribute(this.element, "in-edit", "true");
 			
 			return this;
 		};
 		
 		Editor.prototype.deinitElement = function() {
-			this.element.removeAttribute("data-dytomate-in-edit");
+			this.dytomite.removeElementDytomateAttribute(this.element, "in-edit");
 			
 			return this;
 		};
@@ -6292,7 +6292,12 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 		
 		this.options = this.mergeOptions({
 			dataAttribute: "dytomate",
+			
 			doubleClickDelay: 250,
+			
+			saveUrl: "/api/dytomate/save",
+			uploadUrl: "/api/dytomate/upload",
+			
 			editorPadding: 8,
 			editorBorderWidth: 1,
 			editorBorderColor: "#666",
@@ -6373,7 +6378,7 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 			while (element && this.container.contains(element)) {
 				if (
 					element.classList.contains("dytomate-editor-command-button") ||
-					element.getAttribute("data-dytomate-in-edit") === "true"
+					this.getElementDytomateAttribute(element, "in-edit") === "true"
 				) {
 					return;
 				}
@@ -6409,7 +6414,7 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 			});
 		}
 		else {
-			var url = isFile ? "/api/dytomate/upload" : "/api/dytomate/save";
+			var url = isFile ? this.options.uploadUrl : this.options.saveUrl;
 			
 			var finalize = function() {
 				this.currentlySaving = false;
@@ -6495,7 +6500,7 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 				
 				while (element && this.container.contains(element)) {
 					if (this.getElementDytomateAttribute(element) !== null) {
-						if (element.getAttribute("data-dytomate-in-edit") !== "true") {
+						if (this.getElementDytomateAttribute(element, "in-edit") !== "true") {
 							event.preventDefault();
 							event.stopPropagation();
 							
@@ -6523,13 +6528,13 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 	};
 	
 	Dytomate.prototype.handleDoubleClick = function(element) {
-		var timer = element.getAttribute("data-dytomate-double-click-timer");
+		var timer = this.getElementDytomateAttribute(element, "double-click-timer");
 		
 		timer = timer ? parseInt(timer, 10) : false;
 		
 		if (timer) {
 			clearTimeout(timer);
-			element.removeAttribute("data-dytomate-double-click-timer");
+			this.removeElementDytomateAttribute(element, "double-click-timer");
 			
 			this.edit(element);
 		}
@@ -6541,19 +6546,48 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 					cancelable: true
 				});
 				
-				element.removeAttribute("data-dytomate-double-click-timer");
+				this.removeElementDytomateAttribute(element, "double-click-timer");
 				
 				element.dispatchEvent(event);
 			}.bind(this), this.options.doubleClickDelay);
 			
-			element.setAttribute("data-dytomate-double-click-timer", timer);
+			this.setElementDytomateAttribute(element, "double-click-timer", timer);
 		}
 		
 		return this;
 	};
 	
-	Dytomate.prototype.getElementDytomateAttribute = function(element) {
-		return element.getAttribute("data-" + this.options.dataAttribute);
+	Dytomate.prototype.getElementDytomateAttributeName = function(name) {
+		if (name) {
+			name = "-" + name;
+		}
+		else {
+			name = "";
+		}
+		
+		return "data-" + this.options.dataAttribute + name;
+	};
+	
+	Dytomate.prototype.getElementDytomateAttribute = function(element, name) {
+		name = this.getElementDytomateAttributeName(name);
+		
+		return element.getAttribute(name);
+	};
+	
+	Dytomate.prototype.setElementDytomateAttribute = function(element, name, value) {
+		name = this.getElementDytomateAttributeName(name);
+		
+		element.setAttribute(name, value);
+		
+		return this;
+	};
+	
+	Dytomate.prototype.removeElementDytomateAttribute = function(element, name) {
+		name = this.getElementDytomateAttributeName(name);
+		
+		element.removeAttribute(name);
+		
+		return this;
 	};
 	
 	Dytomate.prototype.mergeOptions = function(defaults, overrides) {
