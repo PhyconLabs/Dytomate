@@ -6285,11 +6285,12 @@ define('ImageChanger',[], function() {
 	return ImageChanger;
 });
 define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageChanger) {
-	function Dytomate(options) {
+	function Dytomate(container, options) {
 		options = options || {};
 		
+		this.container = container;
+		
 		this.options = this.mergeOptions({
-			container: "body",
 			dataAttribute: "dytomate",
 			doubleClickDelay: 250,
 			editorPadding: 8,
@@ -6314,7 +6315,6 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 		this.saveQueue = [];
 		this.listeners = {};
 		
-		this.container = null;
 		this.editor = null;
 		this.currentlySaving = false;
 		this.enabled = false;
@@ -6324,7 +6324,6 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 	
 	Dytomate.prototype.enable = function() {
 		if (!this.enabled) {
-			this.initContainer();
 			this.attachListeners();
 			
 			this.enabled = true;
@@ -6340,7 +6339,6 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 			}
 			
 			this.detachListeners();
-			this.deinitContainer();
 			
 			this.enabled = false;
 		}
@@ -6397,23 +6395,6 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 			this.editor.disable();
 			this.editor = null;
 		}
-		
-		return this;
-	};
-	
-	Dytomate.prototype.initContainer = function() {
-		if (typeof this.options.container === "string") {
-			this.container = document.querySelector(this.options.container);
-		}
-		else {
-			this.container = this.options.container;
-		}
-		
-		return this;
-	};
-	
-	Dytomate.prototype.deinitContainer = function() {
-		this.container = null;
 		
 		return this;
 	};
@@ -6588,8 +6569,30 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 	return Dytomate;
 });
 requirejs([ "Dytomate" ], function(Dytomate) {
+	window.Dytomate = Dytomate;
+	
 	function initDytomate() {
-		var dytomate = new Dytomate();
+		var html = document.querySelector("html");
+		
+		if (!html.classList.contains("no-auto-dytomate")) {
+			var body = document.querySelector("body");
+			var options = body.getAttribute("data-dytomate");
+			
+			try {
+				options = JSON.parse(options);
+				
+				if (typeof options !== "object") {
+					options = {};
+				}
+			}
+			catch (e) {
+				options = {};
+			}
+			
+			body.removeAttribute("data-dytomate");
+			
+			window.dytomate = new Dytomate(body, options);
+		}
 	}
 	
 	if ([ "complete", "loaded", "interactive" ].indexOf(document.readyState) !== -1) {

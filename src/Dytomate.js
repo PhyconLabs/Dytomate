@@ -1,9 +1,10 @@
 define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageChanger) {
-	function Dytomate(options) {
+	function Dytomate(container, options) {
 		options = options || {};
 		
+		this.container = container;
+		
 		this.options = this.mergeOptions({
-			container: "body",
 			dataAttribute: "dytomate",
 			doubleClickDelay: 250,
 			editorPadding: 8,
@@ -28,7 +29,6 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 		this.saveQueue = [];
 		this.listeners = {};
 		
-		this.container = null;
 		this.editor = null;
 		this.currentlySaving = false;
 		this.enabled = false;
@@ -38,7 +38,6 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 	
 	Dytomate.prototype.enable = function() {
 		if (!this.enabled) {
-			this.initContainer();
 			this.attachListeners();
 			
 			this.enabled = true;
@@ -54,7 +53,6 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 			}
 			
 			this.detachListeners();
-			this.deinitContainer();
 			
 			this.enabled = false;
 		}
@@ -111,23 +109,6 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 			this.editor.disable();
 			this.editor = null;
 		}
-		
-		return this;
-	};
-	
-	Dytomate.prototype.initContainer = function() {
-		if (typeof this.options.container === "string") {
-			this.container = document.querySelector(this.options.container);
-		}
-		else {
-			this.container = this.options.container;
-		}
-		
-		return this;
-	};
-	
-	Dytomate.prototype.deinitContainer = function() {
-		this.container = null;
 		
 		return this;
 	};
