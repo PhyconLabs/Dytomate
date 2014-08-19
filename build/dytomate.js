@@ -6405,17 +6405,31 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 	};
 	
 	Dytomate.prototype.editTextElement = function(element) {
+		var mouseDownInElement = false;
+		
 		this.editor = new Editor(this, element);
 		this.editor.enable();
 		
-		window.addEventListener("click", this.listeners.windowClick = function(event) {
+		element.addEventListener("mousedown", this.listeners.elementMouseDown = function(event) {
+			mouseDownInElement = true;
+		});
+		
+		window.addEventListener("mouseup", this.listeners.windowMouseUp = function(event) {
 			var element = event.target;
+			
+			if (mouseDownInElement) {
+				mouseDownInElement = false;
+				
+				return;
+			}
 			
 			while (element && this.container.contains(element)) {
 				if (
 					element.classList.contains("dytomate-editor-command-button") ||
 					this.getElementDytomateAttribute(element, "in-edit") === "true"
 				) {
+					mouseDownInElement = false;
+					
 					return;
 				}
 				
@@ -6430,8 +6444,11 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 	
 	Dytomate.prototype.closeTextElementEdit = function() {
 		if (this.editor) {
-			window.removeEventListener("click", this.listeners.windowClick);
-			delete this.listeners.windowClick;
+			this.editor.scribe.el.removeEventListener("mousedown", this.listeners.elementMouseDown);
+			delete this.listeners.elementMouseDown;
+			
+			window.removeEventListener("mouseup", this.listeners.windowMouseUp);
+			delete this.listeners.windowMouseUp;
 			
 			this.editor.disable();
 			this.editor = null;
