@@ -279,11 +279,44 @@ define(
 		};
 		
 		Editor.prototype.initScribe = function() {
+			var allowBlockElements = this.elementSupportsBlockElements();
 			var scribeToolbar = scribePluginToolbar(this.toolbar.container);
 			
+			this.element.addEventListener("paste", this.listeners.elementPaste = function(e) {
+				e.stopImmediatePropagation();
+				e.preventDefault();
+				
+				if (e.clipboardData) {
+					this.scribe.insertPlainText(e.clipboardData.getData("text/plain"));
+				} else {
+					var div = document.createElement("div");
+					var selection = new this.scribe.api.Selection();
+					
+					selection.placeMarkers();
+					
+					document.body.appendChild(div);
+					div.setAttribute("contenteditable", true);
+					div.focus();
+					
+					setTimeout(function() {
+						var plainText = div.textContent || div.innerText || "";
+						
+						div.parentNode.removeChild(div);
+						selection.selectMarkers();
+						this.element.focus();
+						
+						this.scribe.insertPlainText(plainText);
+					}, 1);
+				}
+			}.bind(this));
+			
 			this.scribe = new Scribe(this.element, {
-				allowBlockElements: this.elementSupportsBlockElements()
+				allowBlockElements: allowBlockElements
 			});
+			
+			this.scribe.insertPlainText = function(plainText) {
+				this.insertHTML(this._plainTextFormatterFactory.format(plainText));
+			}.bind(this.scribe);
 			
 			this.scribe.use(scribeToolbar);
 			this.scribe.use(scribePluginLinkPromptCommand());
@@ -294,6 +327,9 @@ define(
 		};
 		
 		Editor.prototype.deinitScribe = function() {
+			this.element.removeEventListener("paste", this.listeners.elementPaste);
+			delete this.listeners.elementPaste;
+			
 			this.scribe = null;
 			
 			this.element.removeAttribute("contenteditable");
