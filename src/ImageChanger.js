@@ -75,7 +75,7 @@ define([], function() {
 	};
 	
 	ImageChanger.prototype.save = function(file, onDone) {
-		this.dytomate.saveFile(this.element, file, onDone);
+		this.dytomate.saveFile(this.element, file, {}, onDone);
 		
 		return this;
 	};

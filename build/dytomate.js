@@ -5649,91 +5649,71 @@ define('scribe-plugin-toolbar',[],function () {
 });
 
 //# sourceMappingURL=scribe-plugin-toolbar.js.map;
-define('scribe-plugin-link-prompt-command',[],function () {
-
-  /**
-   * This plugin adds a command for creating links, including a basic prompt.
-   */
-
-  
-
-  return function () {
-    return function (scribe) {
-      var linkPromptCommand = new scribe.api.Command('createLink');
-
-      linkPromptCommand.nodeName = 'A';
-
-      linkPromptCommand.execute = function () {
-        var selection = new scribe.api.Selection();
-        var range = selection.range;
-        var anchorNode = selection.getContaining(function (node) {
-          return node.nodeName === this.nodeName;
-        }.bind(this));
-        var initialLink = anchorNode ? anchorNode.href : 'http://';
-        var link = window.prompt('Enter a link.', initialLink);
-
-        if (anchorNode) {
-          range.selectNode(anchorNode);
-          selection.selection.removeAllRanges();
-          selection.selection.addRange(range);
-        }
-
-        // FIXME: I don't like how plugins like this do so much. Is there a way
-        // to compose?
-
-        if (link) {
-          // Prepend href protocol if missing
-          // For emails we just look for a `@` symbol as it is easier.
-          var urlProtocolRegExp = /^https?\:\/\//;
-          // We don't want to match URLs that sort of look like email addresses
-          if (! urlProtocolRegExp.test(link)) {
-            if (! /^mailto\:/.test(link) && /@/.test(link)) {
-              var shouldPrefixEmail = window.confirm(
-                'The URL you entered appears to be an email address. ' +
-                'Do you want to add the required “mailto:” prefix?'
-              );
-              if (shouldPrefixEmail) {
-                link = 'mailto:' + link;
-              }
-            } else {
-              var shouldPrefixLink = window.confirm(
-                'The URL you entered appears to be a link. ' +
-                'Do you want to add the required “http://” prefix?'
-              );
-              if (shouldPrefixLink) {
-                link = 'http://' + link;
-              }
-            }
-          }
-
-          scribe.api.SimpleCommand.prototype.execute.call(this, link);
-        }
-      };
-
-      linkPromptCommand.queryState = function () {
-        /**
-         * We override the native `document.queryCommandState` for links because
-         * the `createLink` and `unlink` commands are not supported.
-         * As per: http://jsbin.com/OCiJUZO/1/edit?js,console,output
-         */
-        var selection = new scribe.api.Selection();
-        return !! selection.getContaining(function (node) {
-          return node.nodeName === this.nodeName;
-        }.bind(this));
-      };
-
-      scribe.commands.linkPrompt = linkPromptCommand;
-    };
-  };
-
+define('scribe-plugins/linkPromptCommand',[], function() {
+	return function() {
+		return function(scribe) {
+			var command = new scribe.api.Command("createLink");
+			var containerIsLink = scribe.el.tagName.toLowerCase() === "a";
+			
+			command.nodeName = "A";
+			
+			command.execute = function() {
+				var node;
+				
+				if (containerIsLink) {
+					node = scribe.el;
+				} else {
+					var selection = new scribe.api.Selection();
+					var range = selection.range;
+					
+					node = selection.getContaining(function(node) {
+						return node.nodeName === this.nodeName;
+					}.bind(this));
+				}
+				
+				var initialHref = node ? node.href : "http://";
+				var href = window.prompt("Enter a link.", initialHref);
+				
+				if (!containerIsLink && node) {
+					range.selectNode(node);
+					selection.selection.removeAllRanges();
+					selection.selection.addRange(range);
+				}
+				
+				if (href) {
+					if (!/^https?\:\/\//.test(href)) {
+						if (!/^mailto\:/.test(href) && /@/.test(href)) {
+							href = 'mailto:' + href;
+						} else {
+							href = "http://" + href;
+						}
+					}
+					
+					if (containerIsLink) {
+						node.href = href;
+					} else {
+						scribe.api.SimpleCommand.prototype.execute.call(this, href);
+					}
+				}
+			};
+			
+			command.queryState = function() {
+				var selection = new scribe.api.Selection();
+				
+				return !! selection.getContaining(function(node) {
+					return node.nodeName === this.nodeName;
+				}.bind(this));
+			};
+			
+			scribe.commands.linkPrompt = command;
+		};
+	};
 });
-
-//# sourceMappingURL=scribe-plugin-link-prompt-command.js.map;
 define(
 	'Editor',[
 		"scribe",
 		"scribe-plugin-toolbar",
-		"scribe-plugin-link-prompt-command"
+		"./scribe-plugins/linkPromptCommand"
 	],
 	
 	function(Scribe, scribePluginToolbar, scribePluginLinkPromptCommand) {
@@ -6103,7 +6083,13 @@ define(
 		};
 		
 		Editor.prototype.save = function(onDone) {
-			this.dytomite.saveText(this.element, this.scribe.getHTML(), onDone);
+			var attributes = {};
+			
+			if (this.getElementTagName() === "a") {
+				attributes.href = this.element.href;
+			}
+			
+			this.dytomite.saveText(this.element, this.scribe.getHTML(), attributes, onDone);
 			
 			return this;
 		};
@@ -6252,7 +6238,7 @@ define('ImageChanger',[], function() {
 	};
 	
 	ImageChanger.prototype.save = function(file, onDone) {
-		this.dytomate.saveFile(this.element, file, onDone);
+		this.dytomate.saveFile(this.element, file, {}, onDone);
 		
 		return this;
 	};
@@ -6457,11 +6443,12 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 		return this;
 	};
 	
-	Dytomate.prototype.save = function(key, value, isFile, onDone, fromQueue) {
+	Dytomate.prototype.save = function(key, value, attributes, isFile, onDone, fromQueue) {
 		if (!fromQueue && this.saveQueue.length > 0) {
 			this.saveQueue.push({
 				key: key,
 				value: value,
+				attributes: attributes,
 				isFile: isFile,
 				onDone: onDone
 			});
@@ -6475,7 +6462,14 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 				if (this.saveQueue.length > 0) {
 					var nextSave = this.saveQueue.shift();
 					
-					this.save(nextSave.key, nextSave.value, nextSave.isFile, nextSave.onDone, true);
+					this.save(
+						nextSave.key,
+						nextSave.value,
+						nextSave.attributes,
+						nextSave.isFile,
+						nextSave.onDone,
+						true
+					);
 				}
 				
 				if (onDone) {
@@ -6502,7 +6496,7 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 			reqwest({
 				url: url,
 				method: "post",
-				data: { key: key, value: value },
+				data: { key: key, value: value, attributes: attributes },
 				error: function(error) {
 					onError();
 				},
@@ -6522,17 +6516,17 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 		return this;
 	};
 	
-	Dytomate.prototype.saveText = function(key, value, onDone) {
-		return this.save(key, value, false, onDone, false);
+	Dytomate.prototype.saveText = function(key, value, attributes, onDone) {
+		return this.save(key, value, attributes, false, onDone, false);
 	};
 	
-	Dytomate.prototype.saveFile = function(key, file, onDone) {
+	Dytomate.prototype.saveFile = function(key, file, attributes, onDone) {
 		var reader = new FileReader();
 		
 		reader.onload = function(event) {
 			var blob = event.target.result.split(",")[1];
 			
-			this.save(key, { name: file.name, blob: blob }, true, onDone, false);
+			this.save(key, { name: file.name, blob: blob }, attributes, true, onDone, false);
 		}.bind(this);
 		
 		reader.readAsDataURL(file);

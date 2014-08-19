@@ -135,11 +135,12 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 		return this;
 	};
 	
-	Dytomate.prototype.save = function(key, value, isFile, onDone, fromQueue) {
+	Dytomate.prototype.save = function(key, value, attributes, isFile, onDone, fromQueue) {
 		if (!fromQueue && this.saveQueue.length > 0) {
 			this.saveQueue.push({
 				key: key,
 				value: value,
+				attributes: attributes,
 				isFile: isFile,
 				onDone: onDone
 			});
@@ -153,7 +154,14 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 				if (this.saveQueue.length > 0) {
 					var nextSave = this.saveQueue.shift();
 					
-					this.save(nextSave.key, nextSave.value, nextSave.isFile, nextSave.onDone, true);
+					this.save(
+						nextSave.key,
+						nextSave.value,
+						nextSave.attributes,
+						nextSave.isFile,
+						nextSave.onDone,
+						true
+					);
 				}
 				
 				if (onDone) {
@@ -180,7 +188,7 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 			reqwest({
 				url: url,
 				method: "post",
-				data: { key: key, value: value },
+				data: { key: key, value: value, attributes: attributes },
 				error: function(error) {
 					onError();
 				},
@@ -200,17 +208,17 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 		return this;
 	};
 	
-	Dytomate.prototype.saveText = function(key, value, onDone) {
-		return this.save(key, value, false, onDone, false);
+	Dytomate.prototype.saveText = function(key, value, attributes, onDone) {
+		return this.save(key, value, attributes, false, onDone, false);
 	};
 	
-	Dytomate.prototype.saveFile = function(key, file, onDone) {
+	Dytomate.prototype.saveFile = function(key, file, attributes, onDone) {
 		var reader = new FileReader();
 		
 		reader.onload = function(event) {
 			var blob = event.target.result.split(",")[1];
 			
-			this.save(key, { name: file.name, blob: blob }, true, onDone, false);
+			this.save(key, { name: file.name, blob: blob }, attributes, true, onDone, false);
 		}.bind(this);
 		
 		reader.readAsDataURL(file);

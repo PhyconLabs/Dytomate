@@ -2,7 +2,7 @@ define(
 	[
 		"scribe",
 		"scribe-plugin-toolbar",
-		"scribe-plugin-link-prompt-command"
+		"./scribe-plugins/linkPromptCommand"
 	],
 	
 	function(Scribe, scribePluginToolbar, scribePluginLinkPromptCommand) {
@@ -372,7 +372,13 @@ define(
 		};
 		
 		Editor.prototype.save = function(onDone) {
-			this.dytomite.saveText(this.element, this.scribe.getHTML(), onDone);
+			var attributes = {};
+			
+			if (this.getElementTagName() === "a") {
+				attributes.href = this.element.href;
+			}
+			
+			this.dytomite.saveText(this.element, this.scribe.getHTML(), attributes, onDone);
 			
 			return this;
 		};
