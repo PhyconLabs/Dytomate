@@ -3529,7 +3529,7 @@ define('plugins/core/events',[
        * I also don't like how it has the authority to perform `event.preventDefault`.
        */
 
-      scribe.el.addEventListener('paste', function handlePaste(event) {console.log("SCRIBEPAST");
+      scribe.el.addEventListener('paste', function handlePaste(event) {
         /**
          * Browsers without the Clipboard API (specifically `ClipboardEvent.clipboardData`)
          * will execute the second branch here.
