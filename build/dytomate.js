@@ -5717,8 +5717,8 @@ define(
 	],
 	
 	function(Scribe, scribePluginToolbar, scribePluginLinkPromptCommand) {
-		function Editor(dytomite, element) {
-			this.dytomite = dytomite;
+		function Editor(dytomate, element) {
+			this.dytomate = dytomate;
 			this.element = element;
 			
 			this.listeners = {};
@@ -5764,13 +5764,13 @@ define(
 		Editor.prototype.initElement = function() {
 			this.element.style.outline = "none";
 			
-			this.dytomite.setElementDytomateAttribute(this.element, "in-edit", "true");
+			this.dytomate.setElementDytomateAttribute(this.element, "in-edit", "true");
 			
 			return this;
 		};
 		
 		Editor.prototype.deinitElement = function() {
-			this.dytomite.removeElementDytomateAttribute(this.element, "in-edit");
+			this.dytomate.removeElementDytomateAttribute(this.element, "in-edit");
 			
 			return this;
 		};
@@ -5785,7 +5785,7 @@ define(
 				this.overlay[part] = document.createElement("div");
 				
 				this.overlay[part].style.position = "fixed";
-				this.overlay[part].style.backgroundColor = this.dytomite.options.editorOverlayColor;
+				this.overlay[part].style.backgroundColor = this.dytomate.options.editorOverlayColor;
 			}, this);
 			
 			[ "boldButton", "italicButton", "linkButton" ].forEach(function(part, index) {
@@ -5795,56 +5795,56 @@ define(
 				this.toolbar[part].style.top = "0";
 				this.toolbar[part].style.left = this.toPx(
 					(
-						this.dytomite.options.editorToolbarButtonSize +
-						this.dytomite.options.editorToolbarButtonSpacing
+						this.dytomate.options.editorToolbarButtonSize +
+						this.dytomate.options.editorToolbarButtonSpacing
 					) *
 					index
 				);
-				this.toolbar[part].style.width = this.toPx(this.dytomite.options.editorToolbarButtonSize);
-				this.toolbar[part].style.height = this.toPx(this.dytomite.options.editorToolbarButtonSize);
+				this.toolbar[part].style.width = this.toPx(this.dytomate.options.editorToolbarButtonSize);
+				this.toolbar[part].style.height = this.toPx(this.dytomate.options.editorToolbarButtonSize);
 				this.toolbar[part].style.padding = "0";
 				this.toolbar[part].style.margin = "0";
-				this.toolbar[part].style.border = this.toPx(this.dytomite.options.editorToolbarButtonBorderWidth) +
+				this.toolbar[part].style.border = this.toPx(this.dytomate.options.editorToolbarButtonBorderWidth) +
 					" solid " +
-					this.dytomite.options.editorToolbarButtonBorderColor;
+					this.dytomate.options.editorToolbarButtonBorderColor;
 				this.toolbar[part].style.boxShadow = "0 0 " +
-					this.toPx(this.dytomite.options.editorToolbarButtonShadowSize) +
+					this.toPx(this.dytomate.options.editorToolbarButtonShadowSize) +
 					" " +
-					this.dytomite.options.editorToolbarButtonShadowColor;
+					this.dytomate.options.editorToolbarButtonShadowColor;
 				this.toolbar[part].style.cursor = "pointer";
 				this.toolbar[part].style.backgroundSize = "contain";
-				this.toolbar[part].style.backgroundColor = this.dytomite.options.editorToolbarButtonColor;
+				this.toolbar[part].style.backgroundColor = this.dytomate.options.editorToolbarButtonColor;
 				
 				this.toolbar[part].classList.add("dytomate-editor-command-button");
 				
 				this.toolbar[part].addEventListener("mouseover", function() {
-					this.toolbar[part].style.backgroundColor = this.dytomite.options.editorToolbarButtonHoverColor;
+					this.toolbar[part].style.backgroundColor = this.dytomate.options.editorToolbarButtonHoverColor;
 					this.toolbar[part].style.boxShadow = "0 0 " +
-						this.toPx(this.dytomite.options.editorToolbarButtonShadowHoverSize) +
+						this.toPx(this.dytomate.options.editorToolbarButtonShadowHoverSize) +
 						" " +
-						this.dytomite.options.editorToolbarButtonShadowColor;
+						this.dytomate.options.editorToolbarButtonShadowColor;
 				}.bind(this));
 				
 				this.toolbar[part].addEventListener("mouseout", function() {
-					this.toolbar[part].style.backgroundColor = this.dytomite.options.editorToolbarButtonColor;
+					this.toolbar[part].style.backgroundColor = this.dytomate.options.editorToolbarButtonColor;
 					this.toolbar[part].style.boxShadow = "0 0 " +
-						this.toPx(this.dytomite.options.editorToolbarButtonShadowSize) +
+						this.toPx(this.dytomate.options.editorToolbarButtonShadowSize) +
 						" " +
-						this.dytomite.options.editorToolbarButtonShadowColor;
+						this.dytomate.options.editorToolbarButtonShadowColor;
 				}.bind(this));
 			}, this);
 			
 			this.overlay.window.style.position = "fixed";
 			this.overlay.window.style.boxSizing = "content-box";
-			this.overlay.window.style.padding = this.toPx(this.dytomite.options.editorPadding);
-			this.overlay.window.style.border = this.toPx(this.dytomite.options.editorBorderWidth) +
+			this.overlay.window.style.padding = this.toPx(this.dytomate.options.editorPadding);
+			this.overlay.window.style.border = this.toPx(this.dytomate.options.editorBorderWidth) +
 				" solid " +
-				this.dytomite.options.editorBorderColor;
+				this.dytomate.options.editorBorderColor;
 			this.overlay.window.style.pointerEvents = "none";
 			this.overlay.window.style.boxShadow = "0 0 " +
-				this.toPx(this.dytomite.options.editorShadowSize) +
+				this.toPx(this.dytomate.options.editorShadowSize) +
 				" " +
-				this.dytomite.options.editorShadowColor;
+				this.dytomate.options.editorShadowColor;
 			
 			this.overlay.top.style.top = "0";
 			this.overlay.top.style.left = "0";
@@ -5908,11 +5908,11 @@ define(
 			var viewportHeight = window.innerHeight;
 			var elementWidth = this.element.offsetWidth;
 			var elementHeight = this.element.offsetHeight;
-			var padding = this.dytomite.options.editorPadding;
-			var border = this.dytomite.options.editorBorderWidth;
-			var toolbarOffsetX = this.dytomite.options.editorToolbarOffsetX;
-			var toolbarOffsetY = this.dytomite.options.editorToolbarOffsetY;
-			var toolbarButtonSize = this.dytomite.options.editorToolbarButtonSize;
+			var padding = this.dytomate.options.editorPadding;
+			var border = this.dytomate.options.editorBorderWidth;
+			var toolbarOffsetX = this.dytomate.options.editorToolbarOffsetX;
+			var toolbarOffsetY = this.dytomate.options.editorToolbarOffsetY;
+			var toolbarButtonSize = this.dytomate.options.editorToolbarButtonSize;
 			
 			var toolbarSpaceY = toolbarOffsetY > 0 ? 0 : Math.abs(toolbarOffsetY);
 			
@@ -6089,7 +6089,21 @@ define(
 				attributes.href = this.element.href;
 			}
 			
-			this.dytomite.saveText(this.element, this.scribe.getHTML(), attributes, onDone);
+			this.updateRelatedElements();
+			this.dytomate.saveText(this.element, this.scribe.getHTML(), attributes, onDone);
+			
+			return this;
+		};
+		
+		Editor.prototype.updateRelatedElements = function() {
+			var key = this.dytomate.getElementDytomateAttribute(this.element);
+			var elements = document.querySelectorAll("*[data-" + this.dytomate.options.dataAttribute + "=\"" + key + "\"]");
+			
+			for (var i = 0; i < elements.length; i++) {
+				if (elements[i] !== this.element) {
+					elements[i].innerHTML = this.scribe.getHTML();
+				}
+			}
 			
 			return this;
 		};
@@ -6547,7 +6561,10 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 				
 				while (element && this.container.contains(element)) {
 					if (this.getElementDytomateAttribute(element) !== null) {
-						if (this.getElementDytomateAttribute(element, "in-edit") !== "true") {
+						if (
+							this.getElementDytomateAttribute(element, "in-edit") !== "true" &&
+							this.getElementDytomateAttribute(element, "ro") === null
+						) {
 							event.preventDefault();
 							event.stopPropagation();
 							

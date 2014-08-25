@@ -239,7 +239,10 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 				
 				while (element && this.container.contains(element)) {
 					if (this.getElementDytomateAttribute(element) !== null) {
-						if (this.getElementDytomateAttribute(element, "in-edit") !== "true") {
+						if (
+							this.getElementDytomateAttribute(element, "in-edit") !== "true" &&
+							this.getElementDytomateAttribute(element, "ro") === null
+						) {
 							event.preventDefault();
 							event.stopPropagation();
 							
