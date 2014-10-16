@@ -6388,6 +6388,14 @@ define('Dytomate',[ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Edi
 	};
 	
 	Dytomate.prototype.edit = function(element) {
+		var event = new CustomEvent("dytomatePreEdit", {
+			detail: "dytomate",
+			bubbles: true,
+			cancelable: true
+		});
+		
+		element.dispatchEvent(event);
+		
 		if (element.tagName.toLowerCase() === "img") {
 			return this.editImageElement(element);
 		}
