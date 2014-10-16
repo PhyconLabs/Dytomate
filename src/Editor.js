@@ -333,7 +333,7 @@ define(
 			this.scribe = null;
 			
 			this.element.removeAttribute("contenteditable");
-			this.element.parentNode.innerHTML = this.element.parentNode.innerHTML;
+			// this.element.parentNode.innerHTML = this.element.parentNode.innerHTML;
 			
 			return this;
 		};

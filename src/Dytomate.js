@@ -227,15 +227,11 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 	};
 	
 	Dytomate.prototype.attachListeners = function() {
-		window.onbeforeunload = function(event) {
-			if (this.saveQueue.length > 0 || this.currentlySaving) {
-				return "Changes are still being saved. Are you sure you want to navigate away ( changes will be lost )?";
-			}
-		}.bind(this);
-		
-		this.container.addEventListener("click", this.listeners.containerClick = function(event) {
+		this.listeners.elementClickListenerElements = [];
+		this.listeners.elementClick = function(event) {
 			if (event.detail !== "dytomate") {
 				var element = event.target;
+				var targetElement = event.target;
 				
 				while (element && this.container.contains(element)) {
 					if (this.getElementDytomateAttribute(element) !== null) {
@@ -246,7 +242,7 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 							event.preventDefault();
 							event.stopPropagation();
 							
-							this.handleDoubleClick(element);
+							this.handleDoubleClick(element, targetElement);
 						}
 						
 						break;
@@ -256,7 +252,22 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 					}
 				}
 			}
-		}.bind(this));
+		}.bind(this);
+		
+		var elements = document.querySelectorAll("[data-" + this.options.dataAttribute + "]");
+		
+		window.onbeforeunload = function(event) {
+			if (this.saveQueue.length > 0 || this.currentlySaving) {
+				return "Changes are still being saved. Are you sure you want to navigate away ( changes will be lost )?";
+			}
+		}.bind(this);
+		
+		for (var i = 0; i < elements.length; i++) {
+			this.listeners.elementClickListenerElements.push(elements[i]);
+			elements[i].addEventListener("click", this.listeners.elementClick);
+		}
+		
+		this.container.addEventListener("click", this.listeners.elementClick);
 		
 		return this;
 	};
@@ -264,12 +275,19 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 	Dytomate.prototype.detachListeners = function() {
 		delete window.onbeforeunload;
 		
-		this.container.removeEventListener("click", this.listeners.containerClick);
+		for (var i = 0; i < this.listeners.elementClickListenerElements.length; i++) {
+			this.listeners.elementClickListenerElements[i].removeEventListener("click", this.listeners.elementClick);
+		}
+		this.listeners.elementClickListenerElements = [];
+		
+		this.container.removeEventListener("click", this.listeners.elementClick);
+		
+		delete this.listeners.elementClick;
 		
 		return this;
 	};
 	
-	Dytomate.prototype.handleDoubleClick = function(element) {
+	Dytomate.prototype.handleDoubleClick = function(element, targetElement) {
 		var timer = this.getElementDytomateAttribute(element, "double-click-timer");
 		
 		timer = timer ? parseInt(timer, 10) : false;
@@ -290,7 +308,7 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 				
 				this.removeElementDytomateAttribute(element, "double-click-timer");
 				
-				element.dispatchEvent(event);
+				targetElement.dispatchEvent(event);
 			}.bind(this), this.options.doubleClickDelay);
 			
 			this.setElementDytomateAttribute(element, "double-click-timer", timer);
