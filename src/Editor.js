@@ -74,6 +74,7 @@ define(
 				this.overlay[part] = document.createElement("div");
 				
 				this.overlay[part].style.position = "fixed";
+				this.overlay[part].style.zIndex = 999;
 				this.overlay[part].style.backgroundColor = this.dytomate.options.editorOverlayColor;
 			}, this);
 			
@@ -124,6 +125,7 @@ define(
 			}, this);
 			
 			this.overlay.window.style.position = "fixed";
+			this.overlay.window.style.zIndex = 999;
 			this.overlay.window.style.boxSizing = "content-box";
 			this.overlay.window.style.padding = this.toPx(this.dytomate.options.editorPadding);
 			this.overlay.window.style.border = this.toPx(this.dytomate.options.editorBorderWidth) +
@@ -148,6 +150,7 @@ define(
 			this.overlay.bottom.style.bottom = "0";
 			
 			this.toolbar.container.style.position = "fixed";
+			this.toolbar.container.style.zIndex = 999;
 			
 			this.toolbar.boldButton.setAttribute("data-command-name", "bold");
 			this.toolbar.boldButton.style.backgroundImage = "url(data:image/gif;base64,R0lGODlhQABAAKIHALa2tsXFxVJSUvf394WFhebm5gAAAP///yH5BAEAAAcALAAAAABAAEAAQAP/eLrc/jDK+YS5OJsAB7BaaBADZYLiBZjHgKbGylawaga1IZQz9IoCgnBIEBhzOgCv58vJZgOkYdn7hZ4sF1LJPFg1xrA4LI11aWVYEBDgnk9OUxRJeC++GaxEW9vZvTkcDwEENSR/aDB6EgBIfm94GIsUODkCBV2RNlmaF3WIoKGio4idaSIEmKOdkw2NW6CsLAVSqpBxLIWBf7I3SLa3Na0LfCmPsadSgqR3uBIFuoZUZ72cv8GKXa+GwCzVM9swh0zfJtHi2CnLEgGmU7zJZUZuzPX29/j5zO6n89OhnUgUGFiAED8zoso1GHAOHTJh5qT8I+dsQkMgE2cohEALk8m6TBUnmPqUTsSwhaY+UoRooqOhUiE7BHyYbcKcGt1KXmGnaRzAHAQCCBVaJJIAeqQO9mOTUaeGYR4uhjj6kyWFcMZyVonJiI6djey8UuNqcUvTCGDDAj3bxOqMSn20iiTbFahcCWk5ShzrlsJNnE7zzJAKhi3eXREGEJJyLHA8cXeZtBlKubLly0MBRNbHuTO+BAA7)";
