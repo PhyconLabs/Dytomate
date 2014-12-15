@@ -15,9 +15,16 @@ define(
 			this.body = null;
 			this.overlay = {};
 			this.toolbar = {};
+			this.textarea = null;
 			this.scribe = null;
+			this.mode = Editor.MODE.WYSIWYG;
 			this.enabled = false;
 		}
+		
+		Editor.MODE = {
+			WYSIWYG: "wysiwyg",
+			HTML: "html"
+		};
 		
 		Editor.prototype.enable = function() {
 			if (!this.enabled) {
@@ -68,6 +75,7 @@ define(
 			var position = this.element.getBoundingClientRect();
 			
 			this.overlay.window = document.createElement("div");
+			this.textarea = document.createElement("textarea");
 			this.toolbar.container = document.createElement("div");
 			
 			[ "top", "left", "right", "bottom" ].forEach(function(part) {
@@ -78,7 +86,7 @@ define(
 				this.overlay[part].style.backgroundColor = this.dytomate.options.editorOverlayColor;
 			}, this);
 			
-			[ "boldButton", "italicButton", "linkButton" ].forEach(function(part, index) {
+			[ "boldButton", "italicButton", "linkButton", "htmlButton" ].forEach(function(part, index) {
 				this.toolbar[part] = document.createElement("button");
 				
 				this.toolbar[part].style.position = "absolute";
@@ -137,6 +145,18 @@ define(
 				" " +
 				this.dytomate.options.editorShadowColor;
 			
+			this.textarea.style.position = "fixed";
+			this.textarea.style.zIndex = 999;
+			this.textarea.style.display = "none";
+			this.textarea.style.boxSizing = "content-box";
+			this.textarea.style.padding = this.toPx(this.dytomate.options.editorPadding);
+			this.textarea.style.border = this.toPx(this.dytomate.options.editorBorderWidth) +
+				" solid " +
+				this.dytomate.options.editorBorderColor;
+			this.textarea.style.resize = "none";
+			
+			this.textarea.classList.add("dytomate-editor-textarea");
+			
 			this.overlay.top.style.top = "0";
 			this.overlay.top.style.left = "0";
 			this.overlay.top.style.right = "0";
@@ -161,6 +181,8 @@ define(
 			this.toolbar.linkButton.setAttribute("data-command-name", "linkPrompt");
 			this.toolbar.linkButton.style.backgroundImage = "url(data:image/gif;base64,R0lGODlhQABAAKIHANXV1YKCgiQkJKenp/f398jIyAAAAP///yH5BAEAAAcALAAAAABAAEAAQAP/eLrc/jDKSSsMJusMrP8HthXUsBkdSIkauRTGAAHCFqj4UdTavdC2nApw8j0IBcKCwMsYhbOTLMK0KaHYA7GY7XoJAZfXy8qIDyaNIDWOlA3nCbDXXqQNa+0pI1DugnUzTQY+MHs+BCdxWXNOHlV0gRFbGlOQjpKZmpucmWVsnR5vAIYaoKENb4sKd3inmqoelE5XbbEWjYSSpZgKuVO+g0+cBR25NwQdf5GowYAYAcIHVauBxw53T5eEtWPXFtvD3org0s2zMQ7h3c0M6FztsrTx9PX29/gPIq/5qSd5/fzt4cOv3q1WKPDdYoCw4KaFDxqigiiBFxx2tshZWNYrfRBFCd8kLSRAcpK5QGBOgJoD7MfJTBJ1DDLjjFknE320DBLAU0nIeD9/truGRGYQAA4zoUP2xtGlanV+InwSU5JQO7qWvIy6VUI4TVepCMPoxWLLCes4oTt7pOumtRC+1oOrFRC+pQDKBCBr7928gA1m7QUcocBgwogTS0gAADs=)";
 			
+			this.toolbar.htmlButton.style.backgroundImage = "url(data:image/gif;base64,R0lGODlhQABAAIABAAAAAP///yH5BAEAAAEALAAAAABAAEAAAALWjI+py+0Po5y02ouz3g8ADkZeSDLeWKbBiaok27obHMsZXdsVfuoYn/NBgD2hhFg0DpFBJYKZdC6gUemByrImsFUpN6v9gq3isbJsNqLTujVM7Wa74u82XV661+f6farv9/LxN5hXGNI1k3izeBGo8ciIZ0EDwsNxqVipGUlBBAkkmen4+YNkWrrDRLqq2uoJ5Ro7wQVLZTsr8nW0u9TbIaYbDDzc4OZwbLyGvGwS55ysQAfdvHUnff2kZ5191ae9bQCIMj5YLj6+Ur7O3n6oBR8vPy9TAAA7)";
+			
 			this.positionOverlay();
 			
 			for (var i in this.overlay) {
@@ -175,6 +197,8 @@ define(
 				}
 			}
 			
+			this.body.appendChild(this.textarea);
+			
 			this.body.appendChild(this.toolbar.container);
 			
 			return this;
@@ -187,10 +211,13 @@ define(
 				}
 			}
 			
+			this.body.removeChild(this.textarea);
+			
 			this.body.removeChild(this.toolbar.container);
 			
 			this.overlay = {};
 			this.toolbar = {};
+			this.textarea = null;
 			
 			return this;
 		};
@@ -244,6 +271,11 @@ define(
 			this.overlay.window.style.left = this.toPx(overlayWindowLeft);
 			this.overlay.window.style.width = this.toPx(overlayWindowWidth);
 			this.overlay.window.style.height = this.toPx(overlayWindowHeight);
+			
+			this.textarea.style.top = this.toPx(overlayWindowTop);
+			this.textarea.style.left = this.toPx(overlayWindowLeft);
+			this.textarea.style.width = this.toPx(overlayWindowWidth);
+			this.textarea.style.height = this.toPx(overlayWindowHeight);
 			
 			this.overlay.top.style.height = this.toPx(overlayTopHeight);
 			
@@ -365,24 +397,41 @@ define(
 			var firstDeepestChild = getFirstDeepestChild(this.scribe.el.firstChild);
 			var range = selection.range;
 			
-			range.setStart(firstDeepestChild, 0);
-			range.setEnd(firstDeepestChild, 0);
-			
-			selection.selection.removeAllRanges();
-			selection.selection.addRange(range);
+			if (range) {
+				range.setStart(firstDeepestChild, 0);
+				range.setEnd(firstDeepestChild, 0);
+				
+				selection.selection.removeAllRanges();
+				selection.selection.addRange(range);
+			}
 			
 			return this;
 		};
 		
 		Editor.prototype.save = function(onDone) {
 			var attributes = {};
+			var html = this.scribe.getHTML();
 			
 			if (this.getElementTagName() === "a") {
 				attributes.href = this.element.href;
+				attributes.title = html;
 			}
 			
 			this.updateRelatedElements();
-			this.dytomate.saveText(this.element, this.scribe.getHTML(), attributes, onDone);
+			this.dytomate.saveText(this.element, html, attributes, function(response) {
+				if (response) {
+					this.element.innerHTML = response.value;
+					
+					if (this.getElementTagName() === "a") {
+						this.element.href = response.attributes.href;
+						this.element.setAttribute("title", response.attributes.title);
+					}
+				}
+				
+				if (onDone) {
+					onDone(response);
+				}
+			}.bind(this));
 			
 			return this;
 		};
@@ -396,6 +445,28 @@ define(
 					elements[i].innerHTML = this.scribe.getHTML();
 				}
 			}
+			
+			return this;
+		};
+		
+		Editor.prototype.switchToHtmlMode = function() {
+			this.textarea.value = this.scribe.getHTML();
+			this.textarea.style.display = "block";
+			
+			this.mode = Editor.MODE.HTML;
+			
+			return this;
+		};
+		
+		Editor.prototype.switchToWysiwygMode = function() {
+			this.element.innerHTML = this.textarea.value;
+			this.removeExtraWhitespace();
+			
+			this.positionOverlay();
+			
+			this.textarea.style.display = "none";
+			
+			this.mode = Editor.MODE.WYSIWYG;
 			
 			return this;
 		};
@@ -417,6 +488,15 @@ define(
 				updater();
 			});
 			
+			this.toolbar.htmlButton.addEventListener("click", this.listeners.htmlButtonClick = function() {
+				if (this.mode === Editor.MODE.WYSIWYG) {
+					this.switchToHtmlMode();
+				}
+				else {
+					this.switchToWysiwygMode();
+				}
+			}.bind(this));
+			
 			return this;
 		};
 		
@@ -429,6 +509,9 @@ define(
 			
 			window.removeEventListener("resize", this.listeners.windowResize);
 			delete this.listeners.windowResize;
+			
+			this.toolbar.htmlButton.removeEventListener("click", this.listeners.htmlButtonClick);
+			delete this.listeners.htmlButtonClick;
 			
 			return this;
 		};

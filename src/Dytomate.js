@@ -112,6 +112,7 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 			while (element && this.container.contains(element)) {
 				if (
 					element.classList.contains("dytomate-editor-command-button") ||
+					element.classList.contains("dytomate-editor-textarea") ||
 					this.getElementDytomateAttribute(element, "in-edit") === "true"
 				) {
 					mouseDownInElement = false;
@@ -156,7 +157,7 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 		else {
 			var url = isFile ? this.options.uploadUrl : this.options.saveUrl;
 			
-			var finalize = function() {
+			var finalize = function(response) {
 				this.currentlySaving = false;
 				
 				if (this.saveQueue.length > 0) {
@@ -173,12 +174,12 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 				}
 				
 				if (onDone) {
-					onDone();
+					onDone(response);
 				}
 			}.bind(this);
 			
-			var onSuccess = function() {
-				finalize();
+			var onSuccess = function(response) {
+				finalize(response);
 			};
 			
 			var onError = function() {
@@ -201,10 +202,15 @@ define([ "reqwest", "Editor", "ImageChanger" ], function(reqwest, Editor, ImageC
 					onError();
 				},
 				success: function(response) {
-					response = parseInt(response, 10);
+					try {
+						response = JSON.parse(response);
+					}
+					catch (e) {
+						response = false;
+					}
 					
-					if (response === 1) {
-						onSuccess();
+					if (typeof response === "object" && response.success) {
+						onSuccess(response);
 					}
 					else {
 						onError();
