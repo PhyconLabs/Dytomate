@@ -1,9 +1,9 @@
 {
   "name": "dytomate",
   "version": "0.0.0",
-  "homepage": "http://ratvars.com",
+  "homepage": "http://dytomate.com/",
   "authors": [
-    "Rolands Atvars <rolands.atvars@gmail.com>"
+    "Rolands Atvars <rolands@securedigitalservices.com>"
   ],
   "description": "JSCMS ( more to come )",
   "main": "src/main.js",
